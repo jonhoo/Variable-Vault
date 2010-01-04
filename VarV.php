@@ -9,7 +9,7 @@
     const DO_SET = 1;
     const DO_GET = 2;
     const DO_HAS = 3;
-    const NOT_FOUND = "This value was not found for $#!%&/()=? sake!";
+    const NOT_FOUND = 'This value was not found for $#!%&/()=? sake!';
 
     private static $_vars = array();
     private static $_locked = array();
@@ -43,8 +43,9 @@
         return false;
       }
 
-      foreach ( self::$_locked as $lockString ) {
-        if ( strpos( $var . '.', $lockString . '.' ) === 0 ) {
+	  $lockedCount = count(self::$_locked);
+      for ( $i = 0; $i < $lockedCount; $i++ ) {
+		if ( strncmp ( $var . '.', self::$_locked[$i] . '.', strlen ( $var . '.' ) ) === 0 ) {
           trigger_error( 'Cannot override locked variable ' . $var . '!', E_USER_WARNING );
           return false;
         }
@@ -63,9 +64,8 @@
       }
 
 
-      $lastIndex = array_pop( explode ( '.', $var ) );
       $node = &self::findVarArrayIndexFromDotString( $var, self::DO_SET );
-      $node[$lastIndex] = $val;
+      $node[array_pop( explode ( '.', $var ) )] = $val;
       return true;
     }
 
@@ -84,16 +84,16 @@
         return false;
       }
 
-      foreach ( self::$_locked as $lockString ) {
-        if ( strpos( $var . '.', $lockString . '.' ) === 0 ) {
-          trigger_error( 'Variable ' . $var . ' is locked, and cannot be unset!', E_USER_WARNING );
+	  $lockedCount = count(self::$_locked);
+      for ( $i = 0; $i < $lockedCount; $i++ ) {
+		if ( strncmp ( $var . '.', self::$_locked[$i] . '.', strlen ( $var . '.' ) ) === 0 ) {
+          trigger_error( 'Cannot override locked variable ' . $var . '!', E_USER_WARNING );
           return false;
         }
       }
 
-      $lastIndex = array_pop( explode ( '.', $var ) );
       $node = &self::findVarArrayIndexFromDotString( $var, self::DO_SET );
-      unset($node[$lastIndex]);
+      unset($node[array_pop( explode ( '.', $var ) )]);
       return true;
     }
 
@@ -104,8 +104,7 @@
      * @return boolean Exists?
      */
     public static function has ( $var ) {
-      $node = self::findVarArrayIndexFromDotString( $var, self::DO_HAS );
-      return $node !== self::NOT_FOUND;
+      return self::findVarArrayIndexFromDotString( $var, self::DO_HAS ) !== self::NOT_FOUND;
     }
 
     /**
@@ -145,8 +144,9 @@
         return false;
       }
 
-      foreach ( self::$_locked as $lockString ) {
-        if ( strpos( $var . '.', $lockString . '.' ) === 0 ) {
+	  $lockedCount = count(self::$_locked);
+      for ( $i = 0; $i < $lockedCount; $i++ ) {
+		if ( strncmp ( $var . '.', self::$_locked[$i] . '.', strlen ( $var . '.' ) ) === 0 ) {
           trigger_error( 'Cannot override locked variable ' . $var . '!', E_USER_WARNING );
           return false;
         }
@@ -156,9 +156,8 @@
         self::$_locked[] = $var;
       }
 
-      $lastIndex = array_pop( explode ( '.', $var ) );
       $node = &self::findVarArrayIndexFromDotString( $var, self::DO_SET );
-      $node[$lastIndex] = $val;
+      $node[array_pop( explode ( '.', $var ) )] = $val;
       return true;
     }
 
@@ -175,8 +174,7 @@
         return $node;
       } else {
         // trigger_error( 'Variable ' . $var . ' is not set!', E_USER_WARNING );
-        $node = false;
-        return $node;
+        return false;
       }
     }
 
@@ -194,17 +192,16 @@
       for ($i = 0; $i < $idx_count; $i++) {
         $idx = $idxs[$i];
 
-        if ($i < $idx_countMinusOne && $action == self::DO_SET && array_key_exists($idx, $atVar) && !is_array($atVar[$idx])) {
+        if ($action === self::DO_SET && !is_array($atVar[$idx]) && $i < $idx_countMinusOne && array_key_exists($idx, $atVar) && ) {
           $atVar[$idx] = array();
         }
 
-        if ((!is_array($atVar) || !array_key_exists($idx, $atVar)) && $i < $idx_countMinusOne) {
-          if ($action == self::DO_GET || $action == self::DO_HAS) {
-            if ($action == self::DO_GET) {
+        if ($i < $idx_countMinusOne && (!is_array($atVar) || !array_key_exists($idx, $atVar))) {
+          if ($action === self::DO_GET || $action === self::DO_HAS) {
+            if ($action === self::DO_GET) {
               // trigger_error ( 'Variable ' . $idx . ' was not found in namespace ' . implode('.', array_slice( $idxs, 0, $i ) ), E_USER_NOTICE );
             }
-            $return = self::NOT_FOUND;
-            return $return;
+            return self::NOT_FOUND;
           } else {
             $atVar[$idx] = array();
           }
@@ -218,8 +215,7 @@
               if ($action == self::DO_GET) {
                 // trigger_error ( 'Variable ' . $idx . ' was not found in namespace ' . implode('.', array_slice( $idxs, 0, $i ) ), E_USER_NOTICE );
               }
-              $return = self::NOT_FOUND;
-              return $return;
+              return self::NOT_FOUND;
             }
           } else {
             return $atVar;
@@ -235,24 +231,13 @@
      * Returns all values in Vault
      *
      * @param boolean $return Determines if the variables should be returned or printed
-     * @param size specify another font size on the output
      * @return Depends on the value of $return
      */
     public static function poo ($return = false, $size = 11) {
-      $arr = self::$_vars;
-      if (isset($arr['config']['db_user'])) {
-        unset($arr['config']['db_user']);
-      }
-      if (isset($arr['config']['db_passwd'])) {
-        unset($arr['config']['db_passwd']);
-      }
-      if (isset($arr['config']['db_host'])) {
-        unset($arr['config']['db_host']);
-      }
       if ($return === false) {
-          ArrayUtils::printArray($arr, 'VarVault', $size);
+          print_r(self::$_vars);
       } else {
-        return $arr;
+        return self::$_vars;
       }
     }
   }
