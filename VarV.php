@@ -9,7 +9,7 @@
     const DO_SET = 1;
     const DO_GET = 2;
     const DO_HAS = 3;
-    const NOT_FOUND = "This value was not found for §#¤%&/()=? sake!";
+    const NOT_FOUND = "This value was not found for $#!%&/()=? sake!";
 
     private static $_vars = array();
     private static $_locked = array();
