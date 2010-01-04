@@ -1,0 +1,1 @@
+VariableVault (VarV) is a PHP class that implements a singleton-style registry for setting and getting variables globally
