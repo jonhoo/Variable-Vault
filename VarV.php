@@ -190,14 +190,15 @@
       $idxs = explode('.', $index);
       $atVar = &self::$_vars;
 	  $idx_count = count($idxs);
+	  $idx_countMinusOne = $idx_count - 1;
       for ($i = 0; $i < $idx_count; $i++) {
         $idx = $idxs[$i];
 
-        if ($i < $idx_count - 1 && $action == self::DO_SET && array_key_exists($idx, $atVar) && !is_array($atVar[$idx])) {
+        if ($i < $idx_countMinusOne && $action == self::DO_SET && array_key_exists($idx, $atVar) && !is_array($atVar[$idx])) {
           $atVar[$idx] = array();
         }
 
-        if ((!is_array($atVar) || !array_key_exists($idx, $atVar)) && $i < $idx_count - 1) {
+        if ((!is_array($atVar) || !array_key_exists($idx, $atVar)) && $i < $idx_countMinusOne) {
           if ($action == self::DO_GET || $action == self::DO_HAS) {
             if ($action == self::DO_GET) {
               // trigger_error ( 'Variable ' . $idx . ' was not found in namespace ' . implode('.', array_slice( $idxs, 0, $i ) ), E_USER_NOTICE );
@@ -209,7 +210,7 @@
           }
         }
 
-        if ($i == $idx_count - 1) {
+        if ($i == $idx_countMinusOne) {
           if ($action == self::DO_GET || $action == self::DO_HAS) {
             if (is_array($atVar) && array_key_exists($idx, $atVar)) {
               return $atVar[$idx];
